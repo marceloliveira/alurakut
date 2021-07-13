@@ -9,6 +9,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
+    background-image: url(https://picsum.photos/1920/230);
+    background-repeat: no-repeat;
     background-color: #D0E6F6;
     font-family: sans-serif;
   }
