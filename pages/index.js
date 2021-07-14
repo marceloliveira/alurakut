@@ -44,7 +44,13 @@ export default function Home() {
     { id: 'marceloliveira', name: 'marceloliveira', image: 'https://github.com/marceloliveira.png', link: 'https://github.com/marceloliveira' },
     { id: 'marcobrunodev', name: 'marcobrunodev', image: 'https://github.com/marcobrunodev.png', link: 'https://github.com/marcobrunodev' },
   ];
-  const [comunidades, setComunidades] = React.useState([{ id: new Date().toISOString(), name: 'Alurakut', image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg', link: 'https://www.alura.com.br/imersao-react/'}])
+  const [comunidades, setComunidades] = React.useState([{ id: new Date().toISOString(), name: 'Alurakut', image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg', link: 'https://www.alura.com.br/imersao-react/'}]);
+  const [seguidores, setSeguidores] = React.useState([]);
+  React.useEffect(() =>
+    fetch(`https://api.github.com/users/${usuario}/followers`)
+    .then(res => res.json())
+    .then(data => setSeguidores(data.map(f => { return { id: f.id, name: f.login, image: f.avatar_url, link: f.html_url } })))
+  ,[]);
   return (
     <>
       <AlurakutMenu githubUser={usuario}></AlurakutMenu>
@@ -83,6 +89,7 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea'}}>
+          <ProfileRelations name="Seguidores" dados={seguidores} />
           <ProfileRelations name="Comunidades" dados={comunidades} />
           <ProfileRelations name="Pessoas Favoritas" dados={pessoasFavoritas} />
         </div>
