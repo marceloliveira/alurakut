@@ -22,8 +22,8 @@ function ProfileRelations(propriedades) {
             return (
               <li key={itemAtual.id}>
                 <a href={itemAtual.link} target="_blank">
-                  <img src={itemAtual.image} />
-                  <span>{itemAtual.name}</span>
+                  <img src={itemAtual.imageUrl} />
+                  <span>{itemAtual.title}</span>
                 </a>
               </li>
             )
@@ -36,21 +36,32 @@ function ProfileRelations(propriedades) {
 export default function Home() {
   const usuario = 'marceloliveira';
   const pessoasFavoritas = [
-    { id: 'omariosouto', name: 'omariosouto', image: 'https://github.com/omariosouto.png', link: 'https://github.com/omariosouto' },
-    { id: 'peas', name: 'peas', image: 'https://github.com/peas.png', link: 'https://github.com/peas' },
-    { id: 'juunegreiros', name: 'juunegreiros', image: 'https://github.com/juunegreiros.png', link: 'https://github.com/juunegreiros' },
-    { id: 'rla4', name: 'rla4', image: 'https://github.com/rla4.png', link: 'https://github.com/rla4' },
-    { id: 'rafaballerini', name: 'rafaballerini', image: 'https://github.com/rafaballerini.png', link: 'https://github.com/rafaballerini' },
-    { id: 'marceloliveira', name: 'marceloliveira', image: 'https://github.com/marceloliveira.png', link: 'https://github.com/marceloliveira' },
-    { id: 'marcobrunodev', name: 'marcobrunodev', image: 'https://github.com/marcobrunodev.png', link: 'https://github.com/marcobrunodev' },
+    { id: 'omariosouto', title: 'omariosouto', imageUrl: 'https://github.com/omariosouto.png', link: 'https://github.com/omariosouto' },
+    { id: 'peas', title: 'peas', imageUrl: 'https://github.com/peas.png', link: 'https://github.com/peas' },
+    { id: 'juunegreiros', title: 'juunegreiros', imageUrl: 'https://github.com/juunegreiros.png', link: 'https://github.com/juunegreiros' },
+    { id: 'rla4', title: 'rla4', imageUrl: 'https://github.com/rla4.png', link: 'https://github.com/rla4' },
+    { id: 'rafaballerini', title: 'rafaballerini', imageUrl: 'https://github.com/rafaballerini.png', link: 'https://github.com/rafaballerini' },
+    { id: 'marceloliveira', title: 'marceloliveira', imageUrl: 'https://github.com/marceloliveira.png', link: 'https://github.com/marceloliveira' },
+    { id: 'marcobrunodev', title: 'marcobrunodev', imageUrl: 'https://github.com/marcobrunodev.png', link: 'https://github.com/marcobrunodev' },
   ];
-  const [comunidades, setComunidades] = React.useState([{ id: new Date().toISOString(), name: 'Alurakut', image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg', link: 'https://www.alura.com.br/imersao-react/'}]);
+  const [comunidades, setComunidades] = React.useState([]);
   const [seguidores, setSeguidores] = React.useState([]);
-  React.useEffect(() =>
+  React.useEffect(() =>{
     fetch(`https://api.github.com/users/${usuario}/followers`)
     .then(res => res.json())
-    .then(data => setSeguidores(data.map(f => { return { id: f.id, name: f.login, image: f.avatar_url, link: f.html_url } })))
-  ,[]);
+    .then(data => setSeguidores(data.map(f => { return { id: f.id, title: f.login, imageUrl: f.avatar_url, link: f.html_url } })));
+    fetch(`https://graphql.datocms.com/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': '62ca25e308e8462292a06680537eb0',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ query: 'query { allCommunities { id title imageUrl link }}'})
+    })
+    .then(res => res.json())
+    .then(resp => setComunidades(resp.data.allCommunities));
+  },[]);
   return (
     <>
       <AlurakutMenu githubUser={usuario}></AlurakutMenu>
@@ -79,7 +90,16 @@ export default function Home() {
               onSubmit={e => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
-                setComunidades([...comunidades, { id: new Date().toISOString(), name: formData.get('title'), image: formData.get('image') ? formData.get('image') : `https://picsum.photos/seed/${formData.get('title')}/300/300`, link: formData.get('link')}])
+                fetch('/api/comunidades', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ creatorSlug: usuario, title: formData.get('title'), imageUrl: formData.get('image') ? formData.get('image') : `https://picsum.photos/seed/${formData.get('title')}/300/300`, link: formData.get('link')})
+                })
+                .then(async res => {
+                  setComunidades([await res.json(), ...comunidades])
+                });                
               }}>
               <input placeholder="Nome da sua comunidade" name="title" aria-label="Nome da sua comunidade" />
               <input placeholder="URL da comunidade" name="link" aria-label="URL da comunidade" />
