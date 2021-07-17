@@ -1,4 +1,6 @@
 import React from 'react';
+import jwt from 'jsonwebtoken';
+import nookies from 'nookies';
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
@@ -13,7 +15,6 @@ function ProfileSidebar(propriedades) {
 }
 
 function ProfileRelations(propriedades) {
-  console.log(propriedades);
   return (
     <ProfileRelationsBoxWrapper>
       <h2 className="smallTitle">{propriedades.name} ({propriedades.dados.length})</h2>
@@ -33,8 +34,8 @@ function ProfileRelations(propriedades) {
   );
 }
 
-export default function Home() {
-  const usuario = 'marceloliveira';
+export default function Home(props) {
+  const usuario = props.githubUser;
   const pessoasFavoritas = [
     { id: 'omariosouto', title: 'omariosouto', imageUrl: 'https://github.com/omariosouto.png', link: 'https://github.com/omariosouto' },
     { id: 'peas', title: 'peas', imageUrl: 'https://github.com/peas.png', link: 'https://github.com/peas' },
@@ -116,4 +117,31 @@ export default function Home() {
       </MainGrid>
     </>
   )
+}
+
+export async function getServerSideProps(context) {
+  const token = nookies.get(context).USER_TOKEN;
+
+  const props = jwt.decode(token);
+
+  const isAuthenticated = await fetch(`https://github.com/${props.githubUser}`,
+    {
+      method: 'HEAD'
+    }
+  )
+  .then(res => res.ok);
+
+  if(!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+
+  return {
+    props
+  }
+
 }
