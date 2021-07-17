@@ -124,7 +124,7 @@ export async function getServerSideProps(context) {
 
   const props = jwt.decode(token);
 
-  const isAuthenticated = await fetch(`https://github.com/${props.githubUser}`,
+  const isAuthenticated = await fetch(`https://github.com/${props?.githubUser}`,
     {
       method: 'HEAD'
     }
